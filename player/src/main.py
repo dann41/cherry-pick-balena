@@ -1,4 +1,4 @@
-#from sense_hat import SenseHat
+from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 from time import sleep
 import json
@@ -8,7 +8,7 @@ import uuid
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
 
-#sense = SenseHat()
+sense = SenseHat()
 broker_address = "10.10.169.39"
 broker_port = 1883
 
@@ -33,13 +33,12 @@ def on_message_received(client, userdata, message):
     print(message.payload)
     board = json.loads(message.payload)
     print(board)
-    #sense.clear()
+    sense.clear()
     print(board.keys())
     for pos in board["positions"]:
         x = pos["position"][0]
         y = pos["position"][1]
-        print(pos["object"] + " - " + x + " - " + y)
-        #sense.set_pixel(x, y, cherry_color)
+        sense.set_pixel(x, y, cherry_color)
     return
 
 def connect_to_mqtt():
@@ -83,4 +82,28 @@ user_id = identify_user()
 send_direction(client, user_id, up)
 
 while True:
-    do_nothing()
+    while True:
+  for event in sense.stick.get_events():
+    # Check if the joystick was pressed
+    if event.action == "pressed":
+      # Check which direction
+      if event.direction == "up":
+        y -= 1
+        if y < 0:
+          y = 7
+      elif event.direction == "down":
+        y += 1
+        if y > 7:
+          y = 0
+      elif event.direction == "left":
+        x -= 1
+        if x < 0:
+          x = 7
+      elif event.direction == "right":
+        x += 1
+        if x > 7:
+          x = 0
+      elif event.direction == "middle":
+        sense.clear()
+
+      #sense.set_pixel(x, y, r)
