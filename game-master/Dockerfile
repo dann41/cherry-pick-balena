@@ -11,5 +11,4 @@ COPY . .
 
 ENV INITSYSTEM on
 
-#CMD modprobe i2c-dev && python game-master/src/main.py
-CMD modprobe i2c-dev && python player/src/main.py
+CMD modprobe i2c-dev && python src/main.py
