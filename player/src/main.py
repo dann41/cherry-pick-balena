@@ -14,6 +14,10 @@ g = (0,255,0) #opponent players
 b = (0,0,0) #blank
 w = (255,255,255) #current player
 
+cherry_color = r
+opponent_color = g
+current_player = w
+
 up = "up"
 down = "down"
 left = "left"
@@ -41,8 +45,14 @@ def send_direction(client, user_id, new_direction):
     return
 
 def on_message_received(client, userdata, message):
-    # Code to parse the message received from MQTT (extract information and call on_map_received)
+    board = json.loads(message)
     print(message)
+    sense.clear()
+    for pos in board['positions']:
+        x = pos['position'][0]
+        y = pos['position'][1]
+        print(pos['object'] + ' - ' + x + ' - ' + y)
+        sense.set_pixel(x, y, cherry_color)
     return
 
 def on_map_received(userId, new_direction):
@@ -57,5 +67,5 @@ client = connect_to_mqtt()
 user_id = identify_user()
 send_direction(client, user_id, up)
 
-while True:
-    sense.show_message("Hello player!")
+#while True:
+#    sense.show_message("Hello player!")
