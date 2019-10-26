@@ -1,0 +1,14 @@
+version: '2'
+services:
+  mosquitto-broker:
+    build: ./mosquitto-broker
+    privileged: true
+    ports:
+      - "1883:1883"  
+    expose:
+      - "1883"
+  subscriber:
+    build: ./subscriber
+    privileged: true
+    depends_on:
+      - mosquitto-broker
