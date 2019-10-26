@@ -1,6 +1,13 @@
 from sense_hat import SenseHat
+import paho.mqtt.client as mqtt
+import json
+
+MAP_TOPIC = "map"
+DIRECTIONS_TOPIC = "directions"
 
 sense = SenseHat()
+broker_address = "10.10.169.39"
+broker_port = 1883
 
 #Set color values
 r = (255,0,0) #cherry
@@ -37,9 +44,13 @@ def check_position_free(x, y):
 
 def connect_to_mqtt():
     # Connect to MQTT and setup hooks
-    return
+    client = mqtt.Client("P1")
+    client.connect(broker_address, broker_port, 60)
+    client.subscribe(DIRECTIONS_TOPIC)
+    client.on_message = on_message_received
+    return client
 
-def on_message_received(message):
+def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_direction_change)
     return
 
