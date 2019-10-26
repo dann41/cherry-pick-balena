@@ -61,7 +61,7 @@ def send_direction(client, user_id, new_direction):
         'user': user_id,
         'direction': new_direction
     }
-    client.publish("directions", json.dumps(message))
+    client.publish(DIRECTIONS_TOPIC, json.dumps(message))
     return
 
 
