@@ -33,6 +33,7 @@ def connect_to_mqtt():
     client.connect(broker_address, broker_port, 60)
     client.subscribe(MAP_TOPIC)
     client.on_message = on_message_received
+    client.loop_start()
     return client
 
 def identify_user():
@@ -61,6 +62,7 @@ def on_message_received(client, userdata, message):
             y = pos['position'][1]
             print(pos['object'] + ' - ' + x + ' - ' + y)
             sense.set_pixel(x, y, cherry_color)
+    print(message.payload)
     return
 
 def on_map_received(userId, new_direction):
@@ -75,5 +77,5 @@ client = connect_to_mqtt()
 user_id = identify_user()
 send_direction(client, user_id, up)
 
-#while True:
-#    sense.show_message("Hello player!")
+while True:
+    sense.show_message("Hello player!")
