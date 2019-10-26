@@ -74,7 +74,6 @@ def do_nothing():
 
 client = connect_to_mqtt()
 user_id = identify_user()
-send_direction(client, user_id, up)
 
 while True:
   for event in sense.stick.get_events():
