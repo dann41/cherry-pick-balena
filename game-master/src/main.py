@@ -2,6 +2,21 @@ from sense_hat import SenseHat
 
 sense = SenseHat()
 
+#Set color values
+r = (255,0,0) #cherry
+g = (0,255,0) #players
+b = (0,0,0) #blank
+
+#Basic start map
+map = [[b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b]]
+
 def check_wall(x, y):
     new_x = x
     new_y = y
