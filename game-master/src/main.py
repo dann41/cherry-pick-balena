@@ -94,6 +94,12 @@ def on_message_received(client, userdata, message):
 
 def on_direction_change(user_id, new_direction):
     print("{} - {}".format(user_id, new_direction))
+    if direction == middle:
+        while True:
+            x = randrange(7)
+            y = randrange(7)
+            if check_position_free(x, y):
+                break
     x, y = find_user_position(user_id, map)
     new_x, new_y = transform_direction(x, y, new_direction)
     new_x, new_y = check_wall(new_x, new_y)
@@ -115,11 +121,7 @@ def transform_direction(x, y, direction):
     elif direction == left:
         new_x -= 1
     elif direction == middle:
-        while True:
-            new_x = randrange(7)
-            new_y = randrange(7)
-            if check_position_free(new_x, new_y):
-                break
+        print("middle is pressed")
     else:
         print('bad direction "{}"'.format(direction))
     return new_x, new_y
