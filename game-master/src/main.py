@@ -1,137 +1,169 @@
-from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 import json
 import random
 
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
+WINNER_TOPIC = "winner"
+KILLED_TOPIC = "killed"
 
-sense = SenseHat()
-broker_address = "10.10.169.39"
-broker_port = 1883
+BROKER_ADDRESS = "192.168.1.47"
+BROKER_PORT = 1883
 
 print("Starting...")
 
 # directions
-up = "up"
-down = "down"
-left = "left"
-right = "right"
-middle = "middle"
+UP = "up"
+DOWN = "down"
+LEFT = "left"
+RIGHT = "right"
+MIDDLE = "middle"
 
-#Set color values
-r = (255,0,0) #cherry
-g = (0,255,0) #players
-b = "blank" #blank
+CHERRY = "cherry"
+BLANK = "blank" #blank
 
-#Basic start map
-map = [[b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b],
-       [b,b,b,b,b,b,b,b]]
+GAME_COMPLETED = "completed"
+GAME_STARTED = "started"
 
-def place_cherry():
-    map[random.randrange(0, 8)][random.randrange(0, 8)] = "cherry"
+class Position:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class Board:
+    def __init__(self, length, game_listener):
+        self.length = length
+        self.game_listener = game_listener
+        self.state = GAME_STARTED
+        self.map = [[BLANK for x in range(self.length)] for y in range(self.length)]
+
+    def initialize(self):
+        position = self.get_free_position()
+        self.map[position.x][position.y] = CHERRY
+
+    def check_position_free(self, position):
+        return self.map[position.x][position.y] == BLANK
+
+    def get_free_position(self):
+        # TODO fix possible endless loop
+        while True:
+            position = get_random_position(self.length)
+            if self.check_position_free(position):
+                return position
+        return Position(0, 0)
+        
+    def get_player(self, user_id, create_if_needed):
+        for i in range(self.length):
+            for j in range(self.length):
+                if self.map[i][j] == user_id:
+                    return Player(user_id, Position(i, j))
+
+        if create_if_needed:
+            return Player(user_id, self.get_free_position())
+        else:
+            raise Exception("not found user_id \"{}\"".format(user_id))   
+
+    def update_player(self, user_id, direction):
+        if self.state == GAME_COMPLETED:
+            print("Game completed. Do nothing")
+            return
+
+        user = self.get_player(user_id, direction == MIDDLE)
+        new_position = self.transform_direction(user.position, direction)
+
+        if self.map[new_position.x][new_position.y] == CHERRY:
+            print("Game completed. Winner: " + user_id)
+            self.state = GAME_COMPLETED
+            self.game_listener.on_game_completed(Player(user_id, new_position))
+        elif self.map[new_position.x][new_position.y] != BLANK:
+            player_killed = Player(self.map[new_position.x][new_position.y], new_position)
+            self.game_listener.on_player_killed(player_killed)
+
+        self.map[user.position.x][user.position.y] = BLANK
+        self.map[new_position.x][new_position.y] = user.user_id
+        self.game_listener.on_board_updated(self.map, self.length)
+
+    def transform_direction(self, position, direction):
+        if direction == UP:
+            return Position(position.x, (self.length + position.y - 1) % self.length)
+        elif direction == DOWN:
+            return Position(position.x, (self.length + position.y + 1)  % self.length)
+        elif direction == RIGHT:
+            return Position((self.length + position.x + 1) % self.length, position.y)
+        elif direction == LEFT:
+            return Position((self.length + position.x - 1) % self.length, position.y)
+        elif direction == MIDDLE:
+            return self.get_free_position()
+        else:
+            print('bad direction "{}"'.format(direction))
+            return Position(0, 0)
+
+class Player:
+    def __init__(self, user_id, position):
+        self.user_id = user_id
+        self.position = position
+
+class GameListener:
+    def __init__(self, client):
+        self.client = client
+
+    def on_board_updated(self, map, length):
+        positions = {
+            "positions": serialize_map(map, length)
+        }
+        self.client.publish(MAP_TOPIC, json.dumps(positions))
+
+    def on_player_killed(self, player):
+        player_json = {
+            "user": player.user_id,
+            "position": {
+                "x": player.position.x,
+                "y": player.position.y,
+            }
+        }
+        self.client.publish(KILLED_TOPIC, json.dumps(player_json))
+
+    def on_game_completed(self, winner):
+        player_json = {
+            "user": winner.user_id,
+            "position": {
+                "x": winner.position.x,
+                "y": winner.position.y,
+            }
+        }
+        self.client.publish(WINNER_TOPIC, json.dumps(player_json))        
 
 
-def find_user_position(user_id, map):
-    for i in range(7):
-        for j in range(7):
-            if map[i][j] == user_id:
-                return i, j
-                break
-    raise Exception("not found user_id \"{}\"".format(user_id))
+def get_random_position(length):
+    return Position(random.randrange(0, length), random.randrange(0, length))
 
-def check_wall(x, y):
-    new_x = x
-    new_y = y
-    if y == 8:
-        new_y = 7
-    elif y == -1:
-        new_y = 0
-    if x == 8:
-        new_x = 7
-    elif x == -1:
-        new_x = 0
-    return new_x, new_y
+def connect_to_mqtt(mqtt_client):
+    mqtt_client.on_connect = on_connect
+    mqtt_client.on_message = on_message_received
+    mqtt_client.connect(BROKER_ADDRESS, BROKER_PORT, 60)
+    mqtt_client.loop_forever()
+    return mqtt_client
 
-def check_position_free(x, y):
-    if map[x][y] == b:
-        return True
-    return False
-
-def connect_to_mqtt():
-    # Connect to MQTT and setup hooks
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message_received
-    client.connect(broker_address, broker_port, 60)
-    client.loop_forever()
-    return client
-
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
-    client.subscribe(DIRECTIONS_TOPIC)
-    place_cherry() 
+def on_connect(mqtt_client, userdata, flags, rc):
+    print("Connected with result code " + str(rc))
+    mqtt_client.subscribe(DIRECTIONS_TOPIC)
     return
 
-def on_message_received(client, userdata, message):
-    print("Message received")
+def on_message_received(mqtt_client, userdata, message):
     if (message.topic == DIRECTIONS_TOPIC):
-        print(message.payload)
         try:
             direction_change = json.loads(message.payload)
-            print(direction_change)
-            on_direction_change(direction_change["user"], direction_change["direction"])
+            on_direction_change(mqtt_client, direction_change["user"], direction_change["direction"])
         except Exception as inst:
             print("Not a valid payload")
             print(inst)
     return
 
-def on_direction_change(user_id, new_direction):
-    print("{} - {}".format(user_id, new_direction))
-    if direction == middle:
-        while True:
-            x = randrange(7)
-            y = randrange(7)
-            if check_position_free(x, y):
-                map[x][y] = user_id
-                break
-    x, y = find_user_position(user_id, map)
-    new_x, new_y = transform_direction(x, y, new_direction)
-    new_x, new_y = check_wall(new_x, new_y)
-    if check_position_free(new_x, new_y):
-        map[x][y] = b
-        map[new_x][new_y] = user_id
-    publish_map(map)
-    return
-
-def transform_direction(x, y, direction):
-    new_x = x
-    new_y = y
-    if direction == up:
-        new_y += 1
-    elif direction == down:
-        new_y -=1
-    elif direction == right:
-        new_x += 1
-    elif direction == left:
-        new_x -= 1
-    elif direction == middle:
-        print("middle is pressed")
-    else:
-        print('bad direction "{}"'.format(direction))
-    return new_x, new_y
-
-def map_to_positions(map):
+def serialize_map(map, length):
     positions = []
-    for row in xrange(1,len(map)):
-        for cell in xrange(1,len(map[row])):
-            if map[row][cell] == b:
+    for row in range(length):
+        for cell in range(length):
+            if map[row][cell] == BLANK:
                 continue
             current = {
                 "object":map[row][cell],
@@ -140,15 +172,14 @@ def map_to_positions(map):
             positions.append(current)
     return positions
 
-def publish_map(map):
-    positions = {
-        "positions":map_to_positions(map)
-    }
-    client.publish(MAP_TOPIC, json.dumps(positions))
-    return
+def on_direction_change(mqtt_client, user_id, new_direction):
+    print("{} - {}".format(user_id, new_direction))
+    board.update_player(user_id, new_direction)
 
-client = connect_to_mqtt()
-print("Connected...")
+# Init
+client = mqtt.Client()
+board = Board(8, GameListener(client))
 
-while True:
-    sense.show_message("Hello game master!")
+# Start
+board.initialize()
+connect_to_mqtt(client)
