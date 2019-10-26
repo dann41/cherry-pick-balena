@@ -1,6 +1,7 @@
 from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 import json
+import random
 
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
@@ -31,6 +32,10 @@ map = [[b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b]]
+
+def place_cherry():
+    map[random.randrange(0, 8)][random.randrange(0, 8)] = "cherry"
+
 
 def find_user_position(user_id, map):
     for i in range(7):
@@ -69,7 +74,8 @@ def connect_to_mqtt():
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-    client.subscribe(DIRECTIONS_TOPIC)   
+    client.subscribe(DIRECTIONS_TOPIC)
+    place_cherry() 
     return
 
 def on_message_received(client, userdata, message):
