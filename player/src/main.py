@@ -1,12 +1,16 @@
 from sense_hat import SenseHat
+import paho.mqtt.client as mqtt
 import json
-import uuid 
-import paho.mqtt.client as mqtt #import the client1
+import uuid
 
 # Application state
+MAP_TOPIC = "map"
+DIRECTIONS_TOPIC = "directions"
+
 
 sense = SenseHat()
-broker_address = "10.10.169.39:1883"
+broker_address = "10.10.169.39"
+broker_port = 1883
 
 #Set color values
 r = (255,0,0) #cherry
@@ -21,15 +25,15 @@ right = "right"
 
 def connect_to_mqtt():
     # Connect to MQTT and setup hooks
-    client = mqtt.Client("P1") #create new instance
-    client.connect(broker_address) #connect to broker
-    client.subscribe("map")
+    client = mqtt.Client("P1")
+    client.connect(broker_address, broker_port, 60)
+    client.subscribe(MAP_TOPIC)
     client.on_message = on_message_received
     return client
 
 def identify_user():
     # Generate UserId
-    return uuid.uuid1()
+    return uuid.uuid1().hex
 
 def send_direction(client, user_id, new_direction):
     # Send new direction to MQTT
@@ -42,7 +46,9 @@ def send_direction(client, user_id, new_direction):
 
 def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_map_received)
-    print(message)
+    if message.topic == MAP_TOPIC:
+        print(message.topic)
+        print(message.payload)
     return
 
 def on_map_received(userId, new_direction):
