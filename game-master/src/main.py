@@ -30,6 +30,11 @@ def check_wall(x, y):
         new_x = 0
     return new_x, new_y
 
+def check_position_free(x, y):
+    if map[x][y] == g:
+        return false
+    return true
+
 def connect_to_mqtt():
     # Connect to MQTT and setup hooks
     return
