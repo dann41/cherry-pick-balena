@@ -1,12 +1,12 @@
 from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
+from time import sleep
 import json
 import uuid
 
 # Application state
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
-
 
 sense = SenseHat()
 broker_address = "10.10.169.39"
@@ -18,18 +18,38 @@ g = (0,255,0) #opponent players
 b = (0,0,0) #blank
 w = (255,255,255) #current player
 
+cherry_color = r
+opponent_color = g
+current_player = w
+
 up = "up"
 down = "down"
 left = "left"
 right = "right"
 
+def on_message_received(client, userdata, message):
+    # Code to parse the message received from MQTT (extract information and call on_map_received)
+    print(message.topic)
+    print(message.payload)
+    board = json.loads(message.payload).encode('utf8')
+    print(board)
+    sleep(5)
+    sense.clear()
+    for pos in board[u'positions']:
+        x = pos[u'position'][0]
+        y = pos[u'position'][1]
+        print(pos[u'object'] + ' - ' + x + ' - ' + y)
+        sense.set_pixel(x, y, cherry_color)
+    return
+
 def connect_to_mqtt():
+    print("connect_to_mqtt")
     # Connect to MQTT and setup hooks
-    client = mqtt.Client("P1")
+    client = mqtt.Client()
     client.connect(broker_address, broker_port, 60)
     client.subscribe(MAP_TOPIC)
     client.on_message = on_message_received
-    client.loop_forever()
+    client.loop_start()
     return client
 
 def identify_user():
@@ -45,12 +65,7 @@ def send_direction(client, user_id, new_direction):
     client.publish("directions", json.dumps(message))
     return
 
-def on_message_received(client, userdata, message):
-    # Code to parse the message received from MQTT (extract information and call on_map_received)
-    if message.topic == MAP_TOPIC:
-        print(message.topic)
-    print(message.payload)
-    return
+
 
 def on_map_received(userId, new_direction):
     # Update map and publish
@@ -60,9 +75,12 @@ def display_map(map):
     # Display map
     return
 
+def do_nothing():
+    return
+
 client = connect_to_mqtt()
 user_id = identify_user()
 send_direction(client, user_id, up)
 
 while True:
-    sense.show_message("Hello player!")
+    do_nothing()
