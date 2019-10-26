@@ -38,7 +38,12 @@ def on_message_received(client, userdata, message):
     for pos in board["positions"]:
         x = pos["position"][0]
         y = pos["position"][1]
-        sense.set_pixel(x, y, cherry_color)
+        color = opponent_color
+        if pos["object"] == "cherry"
+            color = cherry_color
+        if pos["object"] == user_id
+            color = current_player
+        sense.set_pixel(x, y, color)
     return
 
 def connect_to_mqtt():
@@ -64,8 +69,6 @@ def send_direction(client, user_id, new_direction):
     client.publish("directions", json.dumps(message))
     return
 
-
-
 def on_map_received(userId, new_direction):
     # Update map and publish
     return
@@ -82,28 +85,8 @@ user_id = identify_user()
 send_direction(client, user_id, up)
 
 while True:
-    while True:
   for event in sense.stick.get_events():
     # Check if the joystick was pressed
     if event.action == "pressed":
-      # Check which direction
-      if event.direction == "up":
-        y -= 1
-        if y < 0:
-          y = 7
-      elif event.direction == "down":
-        y += 1
-        if y > 7:
-          y = 0
-      elif event.direction == "left":
-        x -= 1
-        if x < 0:
-          x = 7
-      elif event.direction == "right":
-        x += 1
-        if x > 7:
-          x = 0
-      elif event.direction == "middle":
-        sense.clear()
+        send_direction(client, user_id, event.direction)
 
-      #sense.set_pixel(x, y, r)
