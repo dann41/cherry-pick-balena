@@ -29,6 +29,7 @@ def connect_to_mqtt():
     client.connect(broker_address, broker_port, 60)
     client.subscribe(MAP_TOPIC)
     client.on_message = on_message_received
+    client.loop_forever()
     return client
 
 def identify_user():
@@ -48,7 +49,7 @@ def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_map_received)
     if message.topic == MAP_TOPIC:
         print(message.topic)
-        print(message.payload)
+    print(message.payload)
     return
 
 def on_map_received(userId, new_direction):
