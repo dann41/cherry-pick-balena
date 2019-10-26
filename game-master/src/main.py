@@ -10,6 +10,8 @@ sense = SenseHat()
 broker_address = "10.10.169.39"
 broker_port = 1883
 
+print("Starting...")
+
 # directions
 up = "up"
 down = "down"
@@ -19,7 +21,7 @@ right = "right"
 #Set color values
 r = (255,0,0) #cherry
 g = (0,255,0) #players
-b = (0,0,0) #blank
+b = "" #blank
 
 #Basic start map
 map = [[b,b,b,b,b,b,b,b],
@@ -31,6 +33,15 @@ map = [[b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b]]
 
+def find_user_position(user_id, map):
+    for i in range(7):
+        for j in range(7):
+            if map[i][j] == user_id:
+                return i, j
+                break
+            else:
+                return false
+       
 def check_wall(x, y):
     new_x = x
     new_y = y
@@ -51,24 +62,37 @@ def check_position_free(x, y):
 
 def connect_to_mqtt():
     # Connect to MQTT and setup hooks
-    client = mqtt.Client("P1")
-    client.connect(broker_address, broker_port, 60)
-    client.subscribe(DIRECTIONS_TOPIC)
+    client = mqtt.Client()
+    client.on_connect = on_connect
     client.on_message = on_message_received
+    client.connect(broker_address, broker_port, 60)
     client.loop_forever()
     return client
 
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+    client.subscribe(DIRECTIONS_TOPIC)   
+    return
+
+
 def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_direction_change)
+    print("Message received")
     if (message.topic == DIRECTIONS_TOPIC):
-        direction_change = json.loads(message)
-        on_direction_change(direction_change.user, direction_change.direction)
+        print(message.payload)
+        try:
+            direction_change = json.loads(message)
+            print(direction_change)
+            on_direction_change(direction_change.user, direction_change.direction)
+        except:
+            print("Not a valid payload")
     return
 
 def on_direction_change(user_id, new_direction):
-    print(user_id, new_direction)
+    print(user_id)
+    print(new_direction)
     new_x, new_y = transform_direction(x, y, new_direction)
-    check_wall(new_x, new_y)
+    new_x, new_y = check_wall(new_x, new_y)
     if check_position_free(new_x, new_y):
         map[new_x, new_y] = g
     publish_map(map)
@@ -95,6 +119,8 @@ def publish_map(map):
 
 client = connect_to_mqtt()
 
+print("Connected...")
+
 while True:
     sense.show_message("Hello game master!")
-    print("MASTER!")
+
