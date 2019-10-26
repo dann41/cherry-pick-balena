@@ -48,21 +48,26 @@ def connect_to_mqtt():
     client.connect(broker_address, broker_port, 60)
     client.subscribe(DIRECTIONS_TOPIC)
     client.on_message = on_message_received
+    client.loop_forever()
     return client
 
 def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_direction_change)
+    if (message.topic == DIRECTIONS_TOPIC):
+        direction_change = json.loads(message)
+        on_direction_change(direction_change.user, direction_change.direction)
     return
 
-def on_direction_change(userId, newDirection):
+def on_direction_change(user_id, new_direction):
     # Update map and publish
+    print(user_id, new_direction)
     return
 
 def publish_map(map):
     # Send map to MQTT
     return
 
-
+client = connect_to_mqtt()
 
 while True:
     sense.show_message("Hello game master!")
