@@ -72,6 +72,21 @@ def display_map(map):
 def do_nothing():
     return
 
+
+cherry = [
+    b, b, b, g, g, b, b, b,
+    b, b, b, b, g, b, b, b,
+    b, b, b, g, b, g, b, b,
+    b, b, b, g, b, b, g, b,
+    b, b, b, g, b, r, r, b,
+    b, r, r, b, r, r, r, r,
+    r, r, r, r, b, r, r, b,
+    b, r, r, b, b, b, b, b
+]
+
+
+sense.clear()
+sense.set_pixels(cherry)
 client = connect_to_mqtt()
 user_id = identify_user()
 
