@@ -68,7 +68,7 @@ def on_message_received(client, userdata, message):
 def on_direction_change(user_id, new_direction):
     print(user_id, new_direction)
     new_x, new_y = transform_direction(x, y, new_direction)
-    check_wall(new_x, new_y)
+    new_x, new_y = check_wall(new_x, new_y)
     if check_position_free(new_x, new_y):
         map[new_x, new_y] = g
     publish_map(map)
