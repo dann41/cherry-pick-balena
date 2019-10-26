@@ -39,8 +39,8 @@ def find_user_position(user_id, map):
             if map[i][j] == user_id:
                 return i, j
                 break
-    else:
-        return false
+            else:
+                return false
        
 def check_wall(x, y):
     new_x = x
