@@ -1,7 +1,6 @@
 from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 import json
-import random
 
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
@@ -21,7 +20,7 @@ right = "right"
 #Set color values
 r = (255,0,0) #cherry
 g = (0,255,0) #players
-b = "" #blank
+b = "blank" #blank
 
 #Basic start map
 map = [[b,b,b,b,b,b,b,b],
@@ -39,9 +38,8 @@ def find_user_position(user_id, map):
             if map[i][j] == user_id:
                 return i, j
                 break
-            else:
-                return false
-       
+    raise Exception("not found user_id \"{}\"".format(user_id))
+
 def check_wall(x, y):
     new_x = x
     new_y = y
@@ -56,9 +54,9 @@ def check_wall(x, y):
     return new_x, new_y
 
 def check_position_free(x, y):
-    if map[x][y] == g:
-        return false
-    return true
+    if map[x][y] == b:
+        return True
+    return False
 
 def connect_to_mqtt():
     # Connect to MQTT and setup hooks
@@ -74,9 +72,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(DIRECTIONS_TOPIC)   
     return
 
-
 def on_message_received(client, userdata, message):
-    # Code to parse the message received from MQTT (extract information and call on_direction_change)
     print("Message received")
     if (message.topic == DIRECTIONS_TOPIC):
         print(message.payload)
@@ -90,12 +86,13 @@ def on_message_received(client, userdata, message):
     return
 
 def on_direction_change(user_id, new_direction):
-    print(user_id)
-    print(new_direction)
+    print("{} - {}".format(user_id, new_direction))
+    x, y = find_user_position(user_id, map)
     new_x, new_y = transform_direction(x, y, new_direction)
     new_x, new_y = check_wall(new_x, new_y)
     if check_position_free(new_x, new_y):
-        map[new_x, new_y] = g
+        map[x][y] = b
+        map[new_x][new_y] = user_id
     publish_map(map)
     return
 
@@ -114,14 +111,26 @@ def transform_direction(x, y, direction):
         print('bad direction "{}"'.format(direction))
     return new_x, new_y
 
+def map_to_positions(map):
+    positions = []
+    for row in xrange(1,len(map)):
+        for cell in xrange(1,len(map[row])):
+            if map[row][cell] == b:
+                continue
+            current = {
+                "object":map[row][cell],
+                "position":[row, cell]
+            }
+            positions.append(current)
+    return positions
+
 def publish_map(map):
-    # Send map to MQTT
+    positions = map_to_positions(map)
+    print(positions)
     return
 
 client = connect_to_mqtt()
-
 print("Connected...")
 
 while True:
     sense.show_message("Hello game master!")
-
