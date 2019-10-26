@@ -2,7 +2,8 @@ FROM resin/raspberry-pi3-debian:jessie
 
 RUN apt-get update && apt-get install -yq \
    python sense-hat raspberrypi-bootloader && \
-   apt-get clean && rm -rf /var/lib/apt/lists/*
+   apt-get clean && rm -rf /var/lib/apt/lists/* && \
+   pip install
 
 WORKDIR /usr/src/app
 

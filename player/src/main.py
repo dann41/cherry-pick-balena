@@ -40,7 +40,7 @@ def send_direction(client, user_id, new_direction):
     client.publish("directions", json.dumps(message))
     return
 
-def on_message_received(message):
+def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_map_received)
     print(message)
     return
@@ -55,6 +55,7 @@ def display_map(map):
 
 client = connect_to_mqtt()
 user_id = identify_user()
+send_direction(client, user_id, up)
 
 while True:
     sense.show_message("Hello player!")
