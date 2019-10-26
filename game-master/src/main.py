@@ -30,5 +30,23 @@ def check_wall(x, y):
         new_x = 0
     return new_x, new_y
 
+def connect_to_mqtt():
+    # Connect to MQTT and setup hooks
+    return
+
+def on_message_received(message):
+    # Code to parse the message received from MQTT (extract information and call on_direction_change)
+    return
+
+def on_direction_change(userId, newDirection):
+    # Update map and publish
+    return
+
+def publish_map(map):
+    # Send map to MQTT
+    return
+
+
+
 while True:
     sense.show_message("Hello game master!")
