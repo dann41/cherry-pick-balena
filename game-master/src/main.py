@@ -99,6 +99,7 @@ def on_direction_change(user_id, new_direction):
             x = randrange(7)
             y = randrange(7)
             if check_position_free(x, y):
+                map[x][y] = user_id
                 break
     x, y = find_user_position(user_id, map)
     new_x, new_y = transform_direction(x, y, new_direction)
