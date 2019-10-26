@@ -17,6 +17,7 @@ up = "up"
 down = "down"
 left = "left"
 right = "right"
+middle = "middle"
 
 #Set color values
 r = (255,0,0) #cherry
@@ -113,6 +114,12 @@ def transform_direction(x, y, direction):
         new_x += 1
     elif direction == left:
         new_x -= 1
+    elif direction == middle:
+        while True:
+            new_x = randrange(7)
+            new_y = randrange(7)
+            if check_position_free(new_x, new_y):
+                break
     else:
         print('bad direction "{}"'.format(direction))
     return new_x, new_y
