@@ -5,9 +5,14 @@ message = '{"positions": [{"position": [1, 1], "object": "cherry"}, {"position":
 try:
     message_json = json.loads(message)
     print(message_json["positions"])
-    for x in message_json["positions"]:
-        print(x["position"])
-        print(x["object"])
+    for pos in message_json["positions"]:
+        point = pos["position"]
+        x = point[0]
+        y = point[1]
+        user = pos["object"]
+        print(x)
+        print(y)
+        print(user)
 except Exception as inst:
     print("Not a valid payload")
     print(inst)    
