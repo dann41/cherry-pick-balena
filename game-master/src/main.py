@@ -125,8 +125,10 @@ def map_to_positions(map):
     return positions
 
 def publish_map(map):
-    positions = map_to_positions(map)
-    print(positions)
+    positions = {
+        "positions":map_to_positions(map)
+    }
+    print(json.dumps(positions))
     return
 
 client = connect_to_mqtt()
