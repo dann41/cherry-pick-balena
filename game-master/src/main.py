@@ -72,11 +72,12 @@ def on_message_received(client, userdata, message):
     if (message.topic == DIRECTIONS_TOPIC):
         print(message.payload)
         try:
-            direction_change = json.loads(message)
+            direction_change = json.loads(message.payload)
             print(direction_change)
-            on_direction_change(direction_change.user, direction_change.direction)
-        except:
+            on_direction_change(direction_change["user"], direction_change["direction"])
+        except Exception as inst:
             print("Not a valid payload")
+            print(inst)
     return
 
 def on_direction_change(user_id, new_direction):
