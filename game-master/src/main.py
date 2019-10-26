@@ -8,14 +8,14 @@ g = (0,255,0) #players
 b = (0,0,0) #blank
 
 #Basic start map
-maze = [[b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b],
-        [b,b,b,b,b,b,b,b]]
+map = [[b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b],
+       [b,b,b,b,b,b,b,b]]
 
 def check_wall(x, y):
     new_x = x
