@@ -22,32 +22,24 @@ cherry_color = r
 opponent_color = g
 current_player = w
 
-up = "up"
-down = "down"
-left = "left"
-right = "right"
-
 def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_map_received)
-    print(message.topic)
     print(message.payload)
     board = json.loads(message.payload)
-    print(board)
     sense.clear()
-    print(board.keys())
     for pos in board["positions"]:
         x = pos["position"][0]
         y = pos["position"][1]
         color = opponent_color
-        if pos["object"] == "cherry"
+        if pos["object"] == "cherry":
             color = cherry_color
-        if pos["object"] == user_id
+        if pos["object"] == user_id:
             color = current_player
         sense.set_pixel(x, y, color)
     return
 
 def connect_to_mqtt():
-    print("connect_to_mqtt")
+    print("Connected")
     # Connect to MQTT and setup hooks
     client = mqtt.Client()
     client.connect(broker_address, broker_port, 60)
@@ -82,7 +74,6 @@ def do_nothing():
 
 client = connect_to_mqtt()
 user_id = identify_user()
-send_direction(client, user_id, up)
 
 while True:
   for event in sense.stick.get_events():
