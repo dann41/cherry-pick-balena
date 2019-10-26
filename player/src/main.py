@@ -1,4 +1,4 @@
-from sense_hat import SenseHat
+#from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 from time import sleep
 import json
@@ -8,7 +8,7 @@ import uuid
 MAP_TOPIC = "map"
 DIRECTIONS_TOPIC = "directions"
 
-sense = SenseHat()
+#sense = SenseHat()
 broker_address = "10.10.169.39"
 broker_port = 1883
 
@@ -31,15 +31,15 @@ def on_message_received(client, userdata, message):
     # Code to parse the message received from MQTT (extract information and call on_map_received)
     print(message.topic)
     print(message.payload)
-    board = json.loads(message.payload).encode('utf8')
+    board = json.loads(message.payload)
     print(board)
-    sleep(5)
-    sense.clear()
-    for pos in board[u'positions']:
-        x = pos[u'position'][0]
-        y = pos[u'position'][1]
-        print(pos[u'object'] + ' - ' + x + ' - ' + y)
-        sense.set_pixel(x, y, cherry_color)
+    #sense.clear()
+    print(board.keys())
+    for pos in board["positions"]:
+        x = pos["position"][0]
+        y = pos["position"][1]
+        print(pos["object"] + " - " + x + " - " + y)
+        #sense.set_pixel(x, y, cherry_color)
     return
 
 def connect_to_mqtt():
