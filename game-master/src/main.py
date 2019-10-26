@@ -21,7 +21,7 @@ right = "right"
 #Set color values
 r = (255,0,0) #cherry
 g = (0,255,0) #players
-b = (0,0,0) #blank
+b = "" #blank
 
 #Basic start map
 map = [[b,b,b,b,b,b,b,b],
@@ -33,6 +33,15 @@ map = [[b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b],
        [b,b,b,b,b,b,b,b]]
 
+def find_user_position(user_id, map):
+    for i in range(7):
+        for j in range(7):
+            if map[i][j] == user_id:
+                return i, j
+                break
+    else:
+        return false
+       
 def check_wall(x, y):
     new_x = x
     new_y = y
